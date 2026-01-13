@@ -19,15 +19,26 @@ class LuauParser {
         'true', 'until', 'while', 'continue', 'export', 'type'
     ]);
 
-    // Built-in global functions and variables
+    // Built-in global functions and variables (expanded for Roblox)
     static builtins = new Set([
+        // Lua standard library
         'print', 'warn', 'error', 'assert', 'pcall', 'xpcall', 'loadstring',
         'tonumber', 'tostring', 'type', 'pairs', 'ipairs', 'next', 'select',
         'getfenv', 'setfenv', 'getmetatable', 'setmetatable', 'rawget', 'rawset',
         'rawequal', 'unpack', 'table', 'string', 'math', 'coroutine', 'debug',
+        'collectgarbage', 'dofile', 'gcinfo', 'load', 'loadfile', 'newproxy',
+        // Roblox globals (ONLY globals that appear without dot/colon)
         'game', 'workspace', 'script', 'wait', 'spawn', 'delay', 'tick', 'time',
-        '_G', '_VERSION', 'Instance', 'Vector3', 'Vector2', 'CFrame', 'UDim2',
-        'Color3', 'BrickColor', 'Enum', 'require', 'typeof'
+        '_G', '_VERSION', 'shared', 'plugin',
+        // Roblox classes (constructors)
+        'Instance', 'Vector3', 'Vector2', 'CFrame', 'UDim', 'UDim2',
+        'Color3', 'BrickColor', 'Enum', 'require', 'typeof', 'Ray', 'Axes',
+        'Faces', 'Region3', 'Region3int16', 'PhysicalProperties', 'NumberRange',
+        'NumberSequence', 'NumberSequenceKeypoint', 'ColorSequence', 'ColorSequenceKeypoint',
+        'Rect', 'TweenInfo', 'Random', 'DockWidgetPluginGuiInfo', 'PathWaypoint',
+        'OverlapParams', 'RaycastParams', 'RaycastResult', 'DateTime',
+        // Roblox math/utility modules  
+        'bit32', 'utf8', 'os', 'task'
     ]);
 
     isWhitespace(char) {
