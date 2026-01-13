@@ -280,6 +280,20 @@ textarea::placeholder {
     }
 }
 
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .drag-overlay.active {
+        animation: none;
+    }
+    
+    @keyframes pulseGlow {
+        0%, 100% {
+            opacity: 0.95;
+            transform: none;
+        }
+    }
+}
+
 /* Buttons */
 button {
     padding: 10px 20px;

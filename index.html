@@ -39,7 +39,7 @@
                 
                 <!-- File Upload Section -->
                 <div id="fileUploadSection" class="file-upload-section" style="display: none;">
-                    <input type="file" id="fileInput" accept=".lua,.txt" style="display: none;" onchange="handleFileSelect(event)">
+                    <input type="file" id="fileInput" accept=".lua,.txt" style="display: none;" onchange="handleFileSelect(event)" aria-label="Upload Lua or text file">
                     <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
                         📤 Choose .lua File
                     </button>
@@ -327,6 +327,7 @@ print("Script loaded successfully!")`;
         // File Upload Functionality
         let currentInputMode = 'paste';
         let currentFile = null;
+        const MAX_FILE_SIZE = 1024 * 1024; // 1MB
 
         // Switch between paste and upload modes
         function switchInputMode(mode) {
@@ -367,9 +368,8 @@ print("Script loaded successfully!")`;
             }
 
             // Warn for large files
-            const maxSize = 1024 * 1024; // 1MB
-            if (file.size > maxSize) {
-                showStatus(`⚠️ Warning: File is larger than 1MB (${(file.size / 1024 / 1024).toFixed(2)}MB). Processing anyway...`, 'info');
+            if (file.size > MAX_FILE_SIZE) {
+                showStatus(`⚠️ Warning: File is larger than 1MB (${(file.size / MAX_FILE_SIZE).toFixed(2)}MB). Processing anyway...`, 'info');
             }
 
             // Read file contents
@@ -426,12 +426,15 @@ print("Script loaded successfully!")`;
             }
 
             // Highlight drop zone when dragging over it
-            ['dragenter', 'dragover'].forEach(eventName => {
-                wrapper.addEventListener(eventName, () => {
-                    if (eventName === 'dragenter') dragCounter++;
-                    overlay.classList.add('active');
-                }, false);
-            });
+            wrapper.addEventListener('dragenter', (e) => {
+                dragCounter++;
+                overlay.classList.add('active');
+            }, false);
+
+            wrapper.addEventListener('dragover', (e) => {
+                // Keep overlay active during dragover
+                overlay.classList.add('active');
+            }, false);
 
             ['dragleave', 'drop'].forEach(eventName => {
                 wrapper.addEventListener(eventName, () => {
