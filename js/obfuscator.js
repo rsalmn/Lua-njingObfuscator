@@ -3,10 +3,10 @@
  * Coordinates all obfuscation techniques
  */
 
-// Support both Node.js and browser environments
-if (typeof module !== 'undefined' && typeof require !== 'undefined') {
-    var StringEncryption = require('./encryption.js');
-    var LuauParser = require('./parser.js');
+// Support Node.js environment (browser has these in global scope from other script tags)
+if (typeof module !== 'undefined' && module.exports && typeof window === 'undefined') {
+    StringEncryption = require('./encryption.js');
+    LuauParser = require('./parser.js');
 }
 
 class LuauObfuscator {
@@ -225,7 +225,7 @@ class LuauObfuscator {
         return result;
     }
 
-    // Inject dead code
+    // Inject dead code (SAFER VERSION - avoid breaking syntax)
     injectDeadCode(code) {
         if (!this.options.deadCodeInjection) return code;
         
@@ -234,7 +234,6 @@ class LuauObfuscator {
             `local ${this.generateRandomName()} = ${Math.floor(Math.random() * 1000)}`,
             `local ${this.generateRandomName()} = "${Math.random().toString(36).substring(7)}"`,
             `if false then ${this.generateRandomName()} = ${Math.random()} end`,
-            `local ${this.generateRandomName()} = function(${this.generateRandomName()}) return ${this.generateRandomName()} end`,
             `do local ${this.generateRandomName()} = {} end`,
             `local ${this.generateRandomName()} = {${Math.random()}, ${Math.random()}}`,
         ];
@@ -249,8 +248,16 @@ class LuauObfuscator {
         lines.forEach((line, index) => {
             result.push(line);
             
-            // Inject dead code randomly
-            if (index > 0 && Math.random() > 0.7 && index % frequency === 0) {
+            // Only inject after complete statements (not inside tables, function calls, etc.)
+            const trimmedLine = line.trim();
+            const safeToInject = !trimmedLine.endsWith(',') && 
+                                !trimmedLine.endsWith('(') && 
+                                !trimmedLine.endsWith('{') &&
+                                !trimmedLine.startsWith('[') &&
+                                !trimmedLine.includes('return table.concat');
+            
+            // Inject dead code randomly at safe positions
+            if (index > 0 && safeToInject && Math.random() > 0.7 && index % frequency === 0) {
                 const snippet = deadCodeSnippets[Math.floor(Math.random() * deadCodeSnippets.length)];
                 result.push(snippet);
             }
