@@ -23,61 +23,130 @@ class LuauObfuscator {
 
     // Generate random obfuscated identifier
     generateRandomName(prefix = '') {
-        const chars = 'lIlIlIlI1O0OoO0o_';
+        // FIXED: Only use letters and underscores, NO NUMBERS to ensure valid Lua identifiers
+        const startChars = '_lIoO';  // First character - MUST be letter or underscore
+        const middleChars = 'lIoO_lIoOlIoO';  // Subsequent characters - only letters and underscores
         const length = this.options.obfuscationLevel === 'high' ? 
             Math.floor(Math.random() * 15) + 20 : 
             this.options.obfuscationLevel === 'medium' ?
             Math.floor(Math.random() * 10) + 10 :
             Math.floor(Math.random() * 5) + 6;
         
-        let name = prefix || (Math.random() > 0.5 ? '_' : '');
+        let name = prefix || '';
         
-        // Start with letter or underscore
+        // Start with letter or underscore (never a number)
         if (!name) {
-            name = chars.charAt(Math.floor(Math.random() * chars.length));
+            name = startChars.charAt(Math.floor(Math.random() * startChars.length));
         }
         
+        // Add remaining characters
         for (let i = name.length; i < length; i++) {
-            name += chars.charAt(Math.floor(Math.random() * chars.length));
+            name += middleChars.charAt(Math.floor(Math.random() * middleChars.length));
         }
         
-        // Ensure uniqueness
+        // Ensure uniqueness and not a keyword
         while (this.usedNames.has(name) || LuauParser.keywords.has(name)) {
-            name += chars.charAt(Math.floor(Math.random() * chars.length));
+            name += middleChars.charAt(Math.floor(Math.random() * middleChars.length));
         }
         
         this.usedNames.add(name);
         return name;
     }
 
-    // Rename variables and functions
+    // Rename variables and functions (IMPROVED - skip property/method access)
     renameIdentifiers(code) {
         if (!this.options.renameVariables) return code;
         
         this.parser = new LuauParser(code);
-        const identifiers = this.parser.getRenamableIdentifiers();
+        this.parser.tokenize();
         
-        // Create rename mapping
+        // Get all tokens
+        const tokens = this.parser.tokens;
+        
+        // Create rename mapping only for safe identifiers
         this.renameMap.clear();
         this.usedNames.clear();
         
-        identifiers.forEach(id => {
+        // First pass: identify which identifiers can be safely renamed
+        const renamableIdentifiers = new Set();
+        
+        for (let i = 0; i < tokens.length; i++) {
+            const token = tokens[i];
+            const prevToken = i > 0 ? tokens[i - 1] : null;
+            const nextToken = i < tokens.length - 1 ? tokens[i + 1] : null;
+            
+            // Only consider identifier tokens
+            if (token.type !== 'identifier') continue;
+            
+            // Skip if it's a builtin or keyword
+            if (LuauParser.builtins.has(token.value) || LuauParser.keywords.has(token.value)) {
+                continue;
+            }
+            
+            // Skip if preceded by '.' or ':' (property/method access)
+            if (prevToken && (prevToken.value === '.' || prevToken.value === ':')) {
+                continue;
+            }
+            
+            // Skip if followed by ':' (before method call)
+            if (nextToken && nextToken.value === ':') {
+                continue;
+            }
+            
+            // Skip if in property assignment context like {Name = ...}
+            if (nextToken && nextToken.value === '=' && prevToken && prevToken.value === ',') {
+                continue;
+            }
+            if (nextToken && nextToken.value === '=' && i > 0 && tokens[i - 1].value === '{') {
+                continue;
+            }
+            
+            // This identifier is safe to rename
+            renamableIdentifiers.add(token.value);
+        }
+        
+        // Create rename mapping
+        renamableIdentifiers.forEach(id => {
             this.renameMap.set(id, this.generateRandomName());
         });
         
-        // Replace identifiers in code
-        let result = code;
+        // Second pass: apply renaming carefully
+        let result = '';
+        let lastEnd = 0;
         
-        // Sort by length (descending) to avoid partial replacements
-        const sortedIds = Array.from(this.renameMap.keys()).sort((a, b) => b.length - a.length);
+        for (let i = 0; i < tokens.length; i++) {
+            const token = tokens[i];
+            const prevToken = i > 0 ? tokens[i - 1] : null;
+            const nextToken = i < tokens.length - 1 ? tokens[i + 1] : null;
+            
+            // Add content before this token
+            if (token.start > lastEnd) {
+                result += code.substring(lastEnd, token.start);
+            }
+            
+            // Check if this identifier should be renamed
+            let shouldRename = false;
+            if (token.type === 'identifier' && this.renameMap.has(token.value)) {
+                // Double-check it's safe to rename
+                const notAfterDotOrColon = !prevToken || (prevToken.value !== '.' && prevToken.value !== ':');
+                const notBeforeColon = !nextToken || nextToken.value !== ':';
+                
+                shouldRename = notAfterDotOrColon && notBeforeColon;
+            }
+            
+            // Output token (renamed or original)
+            if (shouldRename) {
+                result += this.renameMap.get(token.value);
+            } else {
+                result += code.substring(token.start, token.end);
+            }
+            
+            lastEnd = token.end;
+        }
         
-        for (const oldName of sortedIds) {
-            const newName = this.renameMap.get(oldName);
-            // Use word boundaries to avoid partial replacements
-            // Escape special regex characters
-            const escapedName = oldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const regex = new RegExp(`\\b${escapedName}\\b`, 'g');
-            result = result.replace(regex, newName);
+        // Add any remaining content
+        if (lastEnd < code.length) {
+            result += code.substring(lastEnd);
         }
         
         return result;
@@ -117,57 +186,37 @@ class LuauObfuscator {
         return result;
     }
 
-    // Add control flow obfuscation
+    // Add control flow obfuscation (SAFER VERSION)
     addControlFlowObfuscation(code) {
         if (!this.options.controlFlowObfuscation) return code;
         
         let result = code;
         
-        // Add opaque predicates
-        const opaquePredicates = [
+        // ONLY add safe opaque predicates (always true)
+        const safeOpaquePredicates = [
             '((function() return true end)())',
-            '((function() return 1 + 1 == 2 end)())',
-            '((function() local x = 5 return x > 3 end)())',
             '(not (function() return false end)())',
-            '((function() return "a" == "a" end)())'
+            '((function() return 1 + 1 == 2 end)())'
         ];
         
-        // Replace simple if statements with opaque predicates
-        const ifPattern = /\bif\s+/g;
-        result = result.replace(ifPattern, (match) => {
-            if (Math.random() > 0.5) {
-                const predicate = opaquePredicates[Math.floor(Math.random() * opaquePredicates.length)];
-                return `if ${predicate} and `;
-            }
-            return match;
-        });
-        
-        // Add control flow flattening for while loops
-        if (this.options.obfuscationLevel === 'high') {
-            result = this.flattenControlFlow(result);
+        // Only apply to simple if statements, and do it sparingly
+        if (this.options.obfuscationLevel === 'high' || this.options.obfuscationLevel === 'medium') {
+            const ifPattern = /\bif\s+/g;
+            let matches = 0;
+            result = result.replace(ifPattern, (match) => {
+                matches++;
+                // Only apply to every 4th if statement to avoid breaking code
+                if (matches % 4 === 0 && Math.random() > 0.5) {
+                    const predicate = safeOpaquePredicates[Math.floor(Math.random() * safeOpaquePredicates.length)];
+                    return `if ${predicate} and `;
+                }
+                return match;
+            });
         }
         
-        return result;
-    }
-
-    // Control flow flattening
-    flattenControlFlow(code) {
-        // Simple control flow flattening using state machine
-        const whilePattern = /while\s+(.+?)\s+do\s+([\s\S]+?)\s+end/g;
+        // REMOVED control flow flattening as it can break code
         
-        return code.replace(whilePattern, (match, condition, body) => {
-            if (Math.random() > 0.6) { // Apply randomly
-                const stateVar = this.generateRandomName();
-                return `local ${stateVar} = 1
-while true do
-    if ${stateVar} == 1 then
-        if not (${condition}) then break end
-        ${body}
-    end
-end`;
-            }
-            return match;
-        });
+        return result;
     }
 
     // Inject dead code

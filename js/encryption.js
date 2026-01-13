@@ -1,6 +1,6 @@
 /**
  * String Encryption Module
- * Provides strong encryption for string literals with runtime decryption
+ * Provides XOR-based encryption with hidden key for Roblox/Luau compatibility
  */
 
 class StringEncryption {
@@ -30,26 +30,14 @@ class StringEncryption {
         return encrypted;
     }
 
-    // Base64-like encoding using custom alphabet
-    customEncode(bytes) {
-        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    // Convert byte array to escaped string for Lua
+    bytesToLuaString(bytes) {
         let result = '';
-        
-        for (let i = 0; i < bytes.length; i += 3) {
-            const b1 = bytes[i];
-            const b2 = i + 1 < bytes.length ? bytes[i + 1] : 0;
-            const b3 = i + 2 < bytes.length ? bytes[i + 2] : 0;
-            
-            const enc1 = b1 >> 2;
-            const enc2 = ((b1 & 3) << 4) | (b2 >> 4);
-            const enc3 = ((b2 & 15) << 2) | (b3 >> 6);
-            const enc4 = b3 & 63;
-            
-            result += alphabet[enc1] + alphabet[enc2];
-            result += (i + 1 < bytes.length) ? alphabet[enc3] : '=';
-            result += (i + 2 < bytes.length) ? alphabet[enc4] : '=';
+        for (let i = 0; i < bytes.length; i++) {
+            const byte = bytes[i];
+            // Use hex escape sequences
+            result += '\\x' + ('0' + byte.toString(16)).slice(-2);
         }
-        
         return result;
     }
 
@@ -57,66 +45,67 @@ class StringEncryption {
     encrypt(str) {
         // Apply XOR encryption
         const encrypted = this.xorEncrypt(str, this.encryptionKey);
-        
-        // Encode to make it printable
-        const encoded = this.customEncode(encrypted);
+        const luaString = this.bytesToLuaString(encrypted);
         
         return {
             original: str,
-            encrypted: encoded,
+            encrypted: luaString,
             key: this.encryptionKey
         };
     }
 
-    // Generate Lua decryption code
-    generateDecryptionCode(varName = '__decrypt') {
-        return `local ${varName} = function(s, k)
-    local function decode(str)
-        local alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-        local result = {}
-        local idx = {}
-        for i = 1, #alphabet do
-            idx[alphabet:sub(i, i)] = i - 1
-        end
+    // Generate obfuscated key construction code
+    generateHiddenKeyCode(key, varName = '_k') {
+        // Break the key into individual characters and construct it at runtime
+        let code = `local ${varName} = (function()\n`;
+        code += `    local _t = {}\n`;
         
-        for i = 1, #str, 4 do
-            local b1 = idx[str:sub(i, i)] or 0
-            local b2 = idx[str:sub(i+1, i+1)] or 0
-            local b3 = idx[str:sub(i+2, i+2)] or 0
-            local b4 = idx[str:sub(i+3, i+3)] or 0
-            
-            local c1 = (b1 << 2) | (b2 >> 4)
-            local c2 = ((b2 & 15) << 4) | (b3 >> 2)
-            local c3 = ((b3 & 3) << 6) | b4
-            
-            table.insert(result, c1)
-            if str:sub(i+2, i+2) ~= '=' then table.insert(result, c2) end
-            if str:sub(i+3, i+3) ~= '=' then table.insert(result, c3) end
-        end
-        return result
+        for (let i = 0; i < key.length; i++) {
+            const charCode = key.charCodeAt(i);
+            code += `    _t[${i + 1}] = string.char(0x${charCode.toString(16)})\n`;
+        }
+        
+        code += `    return table.concat(_t)\n`;
+        code += `end)()\n`;
+        
+        return code;
+    }
+
+    // Generate Lua decryption function (Luau-compatible with bit32)
+    generateDecryptionCode(varName = '_d', keyVarName = '_k') {
+        return `local function ${varName}(_s)
+    local _r = {}
+    for _i = 1, #_s do
+        local _c = string.byte(_s, _i)
+        local _kc = string.byte(${keyVarName}, ((_i - 1) % #${keyVarName}) + 1)
+        _r[_i] = string.char(bit32.bxor(_c, _kc))
     end
-    
-    local decoded = decode(s)
-    local decrypted = {}
-    for i = 1, #decoded do
-        local charCode = decoded[i]
-        local keyChar = k:byte((i - 1) % #k + 1)
-        table.insert(decrypted, string.char(charCode ~ keyChar))
-    end
-    return table.concat(decrypted)
+    return table.concat(_r)
 end`;
     }
 
-    // Generate a string table with all encrypted strings
-    generateStringTable(strings, tableName = '__strings', keyName = '__key') {
-        const encryptedData = strings.map(s => this.encrypt(s));
+    // Generate a string table with all encrypted strings and hidden key
+    generateStringTable(strings, tableName = '__strings') {
+        this.encryptedStrings = [];
         
-        let code = `local ${keyName} = "${this.encryptionKey}"\n`;
+        // Generate hidden key
+        let code = '-- Hidden key generation\n';
+        code += this.generateHiddenKeyCode(this.encryptionKey) + '\n';
+        
+        // Generate decryption function
+        code += '-- Decryption function\n';
         code += this.generateDecryptionCode() + '\n\n';
+        
+        // Encrypt all strings
+        const encryptedData = strings.map(s => this.encrypt(s));
+        this.encryptedStrings = encryptedData;
+        
+        // Generate string table
+        code += `-- Encrypted strings table\n`;
         code += `local ${tableName} = {\n`;
         
         encryptedData.forEach((data, index) => {
-            code += `    [${index + 1}] = __decrypt("${data.encrypted}", ${keyName}),\n`;
+            code += `    [${index + 1}] = _d("${data.encrypted}"),\n`;
         });
         
         code += '}\n\n';
@@ -136,56 +125,10 @@ end`;
         return mapping;
     }
 
-    // Multi-layer encryption (for stronger obfuscation)
-    multiLayerEncrypt(str, layers = 2) {
-        let result = str;
-        const keys = [];
-        
-        for (let i = 0; i < layers; i++) {
-            const key = this.generateKey();
-            keys.push(key);
-            const encrypted = this.xorEncrypt(result, key);
-            result = this.customEncode(encrypted);
-        }
-        
-        return {
-            encrypted: result,
-            keys: keys
-        };
-    }
-
-    // Generate multi-layer decryption code
-    generateMultiLayerDecryptionCode(layers = 2) {
-        let code = this.generateDecryptionCode() + '\n\n';
-        
-        code += `local __decrypt_multi = function(s, keys)
-    local result = s
-    for i = #keys, 1, -1 do
-        result = __decrypt(result, keys[i])
-    end
-    return result
-end\n`;
-        
-        return code;
-    }
-
-    // Randomize string encryption per occurrence
-    randomizeEncryption(str) {
-        // Use different keys for each occurrence
-        const key = this.generateKey(Math.floor(Math.random() * 8) + 12);
-        const encrypted = this.xorEncrypt(str, key);
-        const encoded = this.customEncode(encrypted);
-        
-        return {
-            encrypted: encoded,
-            key: key,
-            inline: true
-        };
-    }
-
-    // Generate inline decryption call
-    generateInlineDecryption(encryptedStr, key) {
-        return `(function() local k="${key}" return __decrypt("${encryptedStr}", k) end)()`;
+    // Generate inline encryption (for single strings)
+    generateInlineDecryption(str) {
+        const encrypted = this.encrypt(str);
+        return `_d("${encrypted.encrypted}")`;
     }
 }
 

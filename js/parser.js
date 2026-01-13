@@ -19,15 +19,53 @@ class LuauParser {
         'true', 'until', 'while', 'continue', 'export', 'type'
     ]);
 
-    // Built-in global functions and variables
+    // Built-in global functions and variables (expanded for Roblox)
     static builtins = new Set([
+        // Lua standard library
         'print', 'warn', 'error', 'assert', 'pcall', 'xpcall', 'loadstring',
         'tonumber', 'tostring', 'type', 'pairs', 'ipairs', 'next', 'select',
         'getfenv', 'setfenv', 'getmetatable', 'setmetatable', 'rawget', 'rawset',
         'rawequal', 'unpack', 'table', 'string', 'math', 'coroutine', 'debug',
+        'collectgarbage', 'dofile', 'gcinfo', 'getfenv', 'load', 'loadfile',
+        'newproxy', 'setfenv',
+        // Roblox globals
         'game', 'workspace', 'script', 'wait', 'spawn', 'delay', 'tick', 'time',
-        '_G', '_VERSION', 'Instance', 'Vector3', 'Vector2', 'CFrame', 'UDim2',
-        'Color3', 'BrickColor', 'Enum', 'require', 'typeof'
+        '_G', '_VERSION', 'shared', 'plugin',
+        // Roblox classes
+        'Instance', 'Vector3', 'Vector2', 'CFrame', 'UDim', 'UDim2',
+        'Color3', 'BrickColor', 'Enum', 'require', 'typeof', 'Ray', 'Axes',
+        'Faces', 'Region3', 'Region3int16', 'PhysicalProperties', 'NumberRange',
+        'NumberSequence', 'NumberSequenceKeypoint', 'ColorSequence', 'ColorSequenceKeypoint',
+        'Rect', 'TweenInfo', 'Random', 'DockWidgetPluginGuiInfo', 'PathWaypoint',
+        'OverlapParams', 'RaycastParams', 'RaycastResult', 'DateTime',
+        // Roblox services (common ones)
+        'Workspace', 'Players', 'Lighting', 'ReplicatedStorage', 'ReplicatedFirst',
+        'ServerScriptService', 'ServerStorage', 'StarterGui', 'StarterPack',
+        'StarterPlayer', 'Teams', 'SoundService', 'Chat', 'LocalizationService',
+        'TestService', 'InsertService', 'CollectionService', 'TweenService',
+        'UserInputService', 'ContextActionService', 'RunService', 'HttpService',
+        'MarketplaceService', 'TeleportService', 'DataStoreService', 'GroupService',
+        'BadgeService', 'PointsService', 'AdService', 'NotificationService',
+        // Roblox math functions  
+        'bit32', 'utf8', 'os', 'task',
+        // Common methods/properties (should not be renamed when after . or :)
+        'GetService', 'FindFirstChild', 'FindFirstChildOfClass', 'FindFirstChildWhichIsA',
+        'WaitForChild', 'IsA', 'Clone', 'Destroy', 'GetChildren', 'GetDescendants',
+        'Name', 'Parent', 'ClassName', 'Character', 'LocalPlayer', 'UserId',
+        'DisplayName', 'Humanoid', 'HumanoidRootPart', 'Head', 'Torso',
+        'LeftArm', 'RightArm', 'LeftLeg', 'RightLeg', 'Health', 'MaxHealth',
+        'WalkSpeed', 'JumpPower', 'Position', 'CFrame', 'Orientation', 'Size',
+        'Transparency', 'CanCollide', 'Anchored', 'Material', 'Color',
+        'BrickColor', 'Reflectance', 'Velocity', 'RotVelocity', 'Touched',
+        'Changed', 'ChildAdded', 'ChildRemoved', 'DescendantAdded', 'DescendantRemoving',
+        'GetPlayers', 'GetPlayerByUserId', 'GetPlayerFromCharacter',
+        'PlayerAdded', 'PlayerRemoving', 'CharacterAdded', 'CharacterRemoving',
+        'Kick', 'LoadCharacter', 'TeamColor', 'Team', 'Neutral',
+        'Connect', 'Wait', 'Fire', 'Invoke', 'InvokeServer', 'FireServer',
+        'InvokeClient', 'FireClient', 'OnServerEvent', 'OnClientEvent',
+        'Value', 'Changed', 'Text', 'TextLabel', 'TextButton', 'TextBox',
+        'Visible', 'BackgroundColor3', 'BorderColor3', 'TextColor3',
+        'Font', 'TextSize', 'TextWrapped', 'TextScaled'
     ]);
 
     isWhitespace(char) {
