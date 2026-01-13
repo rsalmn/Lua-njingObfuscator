@@ -1,1 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Luau Obfuscator for Roblox Script - Protect your Luau code with advanced obfuscation techniques">
+    <meta name="keywords" content="Luau, Obfuscator, Roblox, Script, Code Protection">
+    <title>Lua-njingObfuscator - Luau Code Obfuscator for Roblox</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔒 Lua-njingObfuscator</h1>
+            <p class="subtitle">Advanced Luau Code Obfuscator for Roblox Developers</p>
+        </header>
 
+        <div id="statusContainer"></div>
+
+        <div class="main-content">
+            <!-- Input Editor -->
+            <div class="editor-container">
+                <div class="editor-header">
+                    <span class="editor-title">📝 Input Code</span>
+                    <div class="editor-actions">
+                        <button class="secondary" onclick="clearInput()" title="Clear input">Clear</button>
+                    </div>
+                </div>
+                <textarea 
+                    id="inputCode" 
+                    placeholder="-- Paste your Luau code here...&#10;&#10;local function greet(name)&#10;    print('Hello, ' .. name)&#10;end&#10;&#10;greet('World')"
+                ></textarea>
+            </div>
+
+            <!-- Output Editor -->
+            <div class="editor-container">
+                <div class="editor-header">
+                    <span class="editor-title">🔐 Obfuscated Code</span>
+                    <div class="editor-actions">
+                        <button onclick="copyOutput()" title="Copy to clipboard">📋 Copy</button>
+                        <button class="secondary" onclick="clearOutput()" title="Clear output">Clear</button>
+                    </div>
+                </div>
+                <textarea 
+                    id="outputCode" 
+                    placeholder="-- Obfuscated code will appear here..."
+                    readonly
+                ></textarea>
+            </div>
+        </div>
+
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <div class="control-group">
+                <label class="control-label">🎚️ Obfuscation Level</label>
+                <select id="obfuscationLevel">
+                    <option value="low">Low - Basic obfuscation</option>
+                    <option value="medium" selected>Medium - Balanced protection</option>
+                    <option value="high">High - Maximum obfuscation</option>
+                </select>
+            </div>
+
+            <div class="controls-grid">
+                <!-- Feature Toggles -->
+                <div class="checkbox-group">
+                    <input type="checkbox" id="renameVariables" checked>
+                    <label for="renameVariables">
+                        <strong>Variable/Function Renaming</strong><br>
+                        <small>Replace identifiers with random names</small>
+                    </label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="encryptStrings" checked>
+                    <label for="encryptStrings">
+                        <strong>String Encryption</strong><br>
+                        <small>Encrypt all string literals</small>
+                    </label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="controlFlowObfuscation" checked>
+                    <label for="controlFlowObfuscation">
+                        <strong>Control Flow Obfuscation</strong><br>
+                        <small>Complex control structures</small>
+                    </label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="deadCodeInjection" checked>
+                    <label for="deadCodeInjection">
+                        <strong>Dead Code Injection</strong><br>
+                        <small>Insert non-functional code blocks</small>
+                    </label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="variableObfuscation" checked>
+                    <label for="variableObfuscation">
+                        <strong>Variable Obfuscation</strong><br>
+                        <small>Transform variable patterns</small>
+                    </label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="junkCode" checked>
+                    <label for="junkCode">
+                        <strong>Junk Code Generation</strong><br>
+                        <small>Add meaningless valid code</small>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button onclick="obfuscateCode()">
+                    🚀 Obfuscate Code
+                </button>
+                <button class="danger" onclick="resetAll()">
+                    🔄 Reset All
+                </button>
+            </div>
+        </div>
+
+        <footer>
+            <p>
+                Made with ❤️ for Roblox Developers | 
+                <a href="https://github.com/rsalmn/Lua-njingObfuscator" target="_blank">GitHub Repository</a> | 
+                <a href="https://github.com/rsalmn/Lua-njingObfuscator/blob/main/LICENSE" target="_blank">MIT License</a>
+            </p>
+            <p style="margin-top: 10px; font-size: 0.9rem;">
+                ⚠️ Use responsibly. This tool is for protecting your own code, not for malicious purposes.
+            </p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/parser.js"></script>
+    <script src="js/encryption.js"></script>
+    <script src="js/obfuscator.js"></script>
+    <script>
+        // Main obfuscation function
+        function obfuscateCode() {
+            const inputCode = document.getElementById('inputCode').value;
+            
+            if (!inputCode.trim()) {
+                showStatus('Please enter some code to obfuscate!', 'error');
+                return;
+            }
+
+            try {
+                // Get options from UI
+                const options = {
+                    renameVariables: document.getElementById('renameVariables').checked,
+                    encryptStrings: document.getElementById('encryptStrings').checked,
+                    controlFlowObfuscation: document.getElementById('controlFlowObfuscation').checked,
+                    deadCodeInjection: document.getElementById('deadCodeInjection').checked,
+                    variableObfuscation: document.getElementById('variableObfuscation').checked,
+                    junkCode: document.getElementById('junkCode').checked,
+                    obfuscationLevel: document.getElementById('obfuscationLevel').value
+                };
+
+                // Create obfuscator instance
+                const obfuscator = new LuauObfuscator(options);
+                
+                // Perform obfuscation
+                const obfuscatedCode = obfuscator.obfuscate(inputCode);
+                
+                // Display result
+                document.getElementById('outputCode').value = obfuscatedCode;
+                
+                // Show success message with stats
+                const stats = obfuscator.getStats();
+                showStatus(
+                    `✅ Obfuscation successful! Renamed ${stats.renamedIdentifiers} identifiers.`,
+                    'success'
+                );
+            } catch (error) {
+                console.error('Obfuscation error:', error);
+                showStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Copy output to clipboard
+        function copyOutput() {
+            const outputCode = document.getElementById('outputCode').value;
+            
+            if (!outputCode.trim()) {
+                showStatus('No code to copy!', 'error');
+                return;
+            }
+
+            navigator.clipboard.writeText(outputCode).then(() => {
+                showStatus('📋 Copied to clipboard!', 'success');
+            }).catch(err => {
+                showStatus('Failed to copy to clipboard', 'error');
+                console.error('Copy error:', err);
+            });
+        }
+
+        // Clear input
+        function clearInput() {
+            document.getElementById('inputCode').value = '';
+            showStatus('Input cleared', 'info');
+        }
+
+        // Clear output
+        function clearOutput() {
+            document.getElementById('outputCode').value = '';
+            showStatus('Output cleared', 'info');
+        }
+
+        // Reset all
+        function resetAll() {
+            document.getElementById('inputCode').value = '';
+            document.getElementById('outputCode').value = '';
+            document.getElementById('obfuscationLevel').value = 'medium';
+            
+            // Reset all checkboxes to checked
+            document.getElementById('renameVariables').checked = true;
+            document.getElementById('encryptStrings').checked = true;
+            document.getElementById('controlFlowObfuscation').checked = true;
+            document.getElementById('deadCodeInjection').checked = true;
+            document.getElementById('variableObfuscation').checked = true;
+            document.getElementById('junkCode').checked = true;
+            
+            showStatus('All settings reset to defaults', 'info');
+        }
+
+        // Show status message
+        function showStatus(message, type = 'info') {
+            const container = document.getElementById('statusContainer');
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status-message status-${type}`;
+            statusDiv.textContent = message;
+            
+            container.innerHTML = '';
+            container.appendChild(statusDiv);
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                statusDiv.style.opacity = '0';
+                statusDiv.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => {
+                    if (statusDiv.parentNode) {
+                        statusDiv.remove();
+                    }
+                }, 500);
+            }, 5000);
+        }
+
+        // Load example code on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const exampleCode = `-- Example Luau Code
+local Players = game:GetService("Players")
+
+local function greetPlayer(player)
+    local message = "Welcome, " .. player.Name .. "!"
+    print(message)
+    return message
+end
+
+for _, player in pairs(Players:GetPlayers()) do
+    greetPlayer(player)
+end
+
+local data = {
+    name = "ScriptHub",
+    version = "1.0.0",
+    enabled = true
+}
+
+print("Script loaded successfully!")`;
+            
+            document.getElementById('inputCode').value = exampleCode;
+            showStatus('👋 Welcome! Example code loaded. Click "Obfuscate Code" to see it in action!', 'info');
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + Enter to obfuscate
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                obfuscateCode();
+            }
+            
+            // Ctrl/Cmd + Shift + C to copy output
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'c') {
+                e.preventDefault();
+                copyOutput();
+            }
+        });
+    </script>
+</body>
+</html>
