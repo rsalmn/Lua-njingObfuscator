@@ -126,6 +126,174 @@ textarea::placeholder {
     opacity: 0.5;
 }
 
+/* Input Mode Toggle */
+.input-mode-toggle {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 12px 20px;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: none;
+}
+
+.mode-btn:hover {
+    border-color: var(--accent-primary);
+    background: rgba(0, 255, 136, 0.05);
+    transform: translateY(0);
+}
+
+.mode-btn.active {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: var(--bg-primary);
+    border-color: var(--accent-primary);
+    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+}
+
+.mode-btn.active:hover {
+    box-shadow: 0 6px 20px rgba(0, 255, 136, 0.5);
+}
+
+/* File Upload Section */
+.file-upload-section {
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.upload-btn {
+    width: 100%;
+    padding: 15px 20px;
+    background: var(--bg-primary);
+    color: var(--accent-primary);
+    border: 2px dashed var(--accent-primary);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: none;
+}
+
+.upload-btn:hover {
+    background: rgba(0, 255, 136, 0.1);
+    border-style: solid;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+}
+
+/* Filename Display */
+.filename-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    background: rgba(0, 255, 136, 0.1);
+    border: 2px solid var(--accent-primary);
+    border-radius: 8px;
+    color: var(--accent-primary);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.clear-file-btn {
+    padding: 5px 12px;
+    background: var(--accent-danger);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(255, 51, 102, 0.3);
+}
+
+.clear-file-btn:hover {
+    background: #ff1a4d;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 51, 102, 0.5);
+}
+
+/* Textarea Wrapper for Drag and Drop */
+.textarea-wrapper {
+    position: relative;
+}
+
+.drag-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 255, 136, 0.95);
+    border: 3px dashed var(--bg-primary);
+    border-radius: 8px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+.drag-overlay.active {
+    display: flex;
+    animation: pulseGlow 1s ease-in-out infinite;
+}
+
+.drag-content {
+    text-align: center;
+    color: var(--bg-primary);
+}
+
+.drag-icon {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.drag-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        opacity: 0.9;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.02);
+    }
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .drag-overlay.active {
+        animation: none;
+    }
+    
+    @keyframes pulseGlow {
+        0%, 100% {
+            opacity: 0.95;
+            transform: none;
+        }
+    }
+}
+
 /* Buttons */
 button {
     padding: 10px 20px;
@@ -376,6 +544,18 @@ footer a:hover {
     
     .action-buttons button {
         min-width: 100%;
+    }
+
+    .input-mode-toggle {
+        flex-direction: column;
+    }
+
+    .drag-icon {
+        font-size: 3rem;
+    }
+
+    .drag-text {
+        font-size: 1.2rem;
     }
 }
 
