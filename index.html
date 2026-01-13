@@ -26,10 +26,43 @@
                         <button class="secondary" onclick="clearInput()" title="Clear input">Clear</button>
                     </div>
                 </div>
-                <textarea 
-                    id="inputCode" 
-                    placeholder="-- Paste your Luau code here...&#10;&#10;local function greet(name)&#10;    print('Hello, ' .. name)&#10;end&#10;&#10;greet('World')"
-                ></textarea>
+                
+                <!-- Input Mode Toggle -->
+                <div class="input-mode-toggle">
+                    <button id="pasteMode" class="mode-btn active" onclick="switchInputMode('paste')">
+                        📋 Paste Code
+                    </button>
+                    <button id="uploadMode" class="mode-btn" onclick="switchInputMode('upload')">
+                        📁 Upload .lua File
+                    </button>
+                </div>
+                
+                <!-- File Upload Section -->
+                <div id="fileUploadSection" class="file-upload-section" style="display: none;">
+                    <input type="file" id="fileInput" accept=".lua,.txt" style="display: none;" onchange="handleFileSelect(event)">
+                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                        📤 Choose .lua File
+                    </button>
+                </div>
+                
+                <!-- Filename Display -->
+                <div id="filenameDisplay" class="filename-display" style="display: none;">
+                    <span id="filenameText">📄 Loaded: </span>
+                    <button class="clear-file-btn" onclick="clearFile()" title="Clear file">✕ Clear</button>
+                </div>
+                
+                <div class="textarea-wrapper" id="textareaWrapper">
+                    <textarea 
+                        id="inputCode" 
+                        placeholder="-- Paste your Luau code here...&#10;&#10;local function greet(name)&#10;    print('Hello, ' .. name)&#10;end&#10;&#10;greet('World')"
+                    ></textarea>
+                    <div class="drag-overlay" id="dragOverlay">
+                        <div class="drag-content">
+                            <span class="drag-icon">📁</span>
+                            <span class="drag-text">Drop .lua file here</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Output Editor -->
@@ -289,6 +322,147 @@ print("Script loaded successfully!")`;
                 e.preventDefault();
                 copyOutput();
             }
+        });
+
+        // File Upload Functionality
+        let currentInputMode = 'paste';
+        let currentFile = null;
+
+        // Switch between paste and upload modes
+        function switchInputMode(mode) {
+            currentInputMode = mode;
+            const pasteBtn = document.getElementById('pasteMode');
+            const uploadBtn = document.getElementById('uploadMode');
+            const fileUploadSection = document.getElementById('fileUploadSection');
+            
+            if (mode === 'paste') {
+                pasteBtn.classList.add('active');
+                uploadBtn.classList.remove('active');
+                fileUploadSection.style.display = 'none';
+            } else {
+                pasteBtn.classList.remove('active');
+                uploadBtn.classList.add('active');
+                fileUploadSection.style.display = 'block';
+            }
+        }
+
+        // Handle file selection from input
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                processFile(file);
+            }
+        }
+
+        // Process uploaded file
+        function processFile(file) {
+            // Validate file type
+            const validExtensions = ['.lua', '.txt'];
+            const fileName = file.name.toLowerCase();
+            const isValidType = validExtensions.some(ext => fileName.endsWith(ext));
+            
+            if (!isValidType) {
+                showStatus('❌ Invalid file type! Please upload a .lua or .txt file.', 'error');
+                return;
+            }
+
+            // Warn for large files
+            const maxSize = 1024 * 1024; // 1MB
+            if (file.size > maxSize) {
+                showStatus(`⚠️ Warning: File is larger than 1MB (${(file.size / 1024 / 1024).toFixed(2)}MB). Processing anyway...`, 'info');
+            }
+
+            // Read file contents
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const content = e.target.result;
+                document.getElementById('inputCode').value = content;
+                
+                // Show filename
+                currentFile = file;
+                const filenameDisplay = document.getElementById('filenameDisplay');
+                const filenameText = document.getElementById('filenameText');
+                filenameText.textContent = `📄 Loaded: ${file.name}`;
+                filenameDisplay.style.display = 'flex';
+                
+                showStatus(`✅ File loaded successfully! (${(file.size / 1024).toFixed(2)}KB)`, 'success');
+            };
+            
+            reader.onerror = function() {
+                showStatus('❌ Error reading file. Please try again.', 'error');
+            };
+            
+            reader.readAsText(file);
+        }
+
+        // Clear uploaded file
+        function clearFile() {
+            currentFile = null;
+            document.getElementById('inputCode').value = '';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('filenameDisplay').style.display = 'none';
+            
+            // Switch back to paste mode
+            switchInputMode('paste');
+            
+            showStatus('File cleared', 'info');
+        }
+
+        // Drag and Drop functionality
+        function setupDragAndDrop() {
+            const wrapper = document.getElementById('textareaWrapper');
+            const overlay = document.getElementById('dragOverlay');
+            let dragCounter = 0;
+
+            // Prevent default drag behaviors on the whole document
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            // Highlight drop zone when dragging over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                wrapper.addEventListener(eventName, () => {
+                    if (eventName === 'dragenter') dragCounter++;
+                    overlay.classList.add('active');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                wrapper.addEventListener(eventName, () => {
+                    if (eventName === 'dragleave') {
+                        dragCounter--;
+                        if (dragCounter === 0) {
+                            overlay.classList.remove('active');
+                        }
+                    } else {
+                        dragCounter = 0;
+                        overlay.classList.remove('active');
+                    }
+                }, false);
+            });
+
+            // Handle dropped files
+            wrapper.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                if (files.length > 0) {
+                    processFile(files[0]);
+                    // Switch to upload mode when file is dropped
+                    switchInputMode('upload');
+                }
+            }, false);
+        }
+
+        // Initialize drag and drop on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            setupDragAndDrop();
         });
     </script>
 </body>
