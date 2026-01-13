@@ -125,11 +125,11 @@ class LuauParser {
                 if (this.peek() === ']') {
                     let closeLevel = 0;
                     let pos = this.position + 1;
-                    while (this.code[pos] === '=') {
+                    while (pos < this.code.length && this.code[pos] === '=') {
                         closeLevel++;
                         pos++;
                     }
-                    if (this.code[pos] === ']' && closeLevel === level) {
+                    if (pos < this.code.length && this.code[pos] === ']' && closeLevel === level) {
                         this.position = pos + 1;
                         break;
                     }
@@ -197,11 +197,11 @@ class LuauParser {
             if (this.peek() === ']') {
                 let closeLevel = 0;
                 let pos = this.position + 1;
-                while (this.code[pos] === '=') {
+                while (pos < this.code.length && this.code[pos] === '=') {
                     closeLevel++;
                     pos++;
                 }
-                if (this.code[pos] === ']' && closeLevel === level) {
+                if (pos < this.code.length && this.code[pos] === ']' && closeLevel === level) {
                     this.position = pos + 1;
                     break;
                 }

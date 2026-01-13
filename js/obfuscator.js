@@ -74,7 +74,9 @@ class LuauObfuscator {
         for (const oldName of sortedIds) {
             const newName = this.renameMap.get(oldName);
             // Use word boundaries to avoid partial replacements
-            const regex = new RegExp(`\\b${oldName}\\b`, 'g');
+            // Escape special regex characters
+            const escapedName = oldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`\\b${escapedName}\\b`, 'g');
             result = result.replace(regex, newName);
         }
         
