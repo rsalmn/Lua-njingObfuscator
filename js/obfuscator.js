@@ -3,6 +3,12 @@
  * Coordinates all obfuscation techniques
  */
 
+// Support both Node.js and browser environments
+if (typeof module !== 'undefined' && typeof require !== 'undefined') {
+    var StringEncryption = require('./encryption.js');
+    var LuauParser = require('./parser.js');
+}
+
 class LuauObfuscator {
     constructor(options = {}) {
         this.options = {

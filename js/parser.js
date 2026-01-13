@@ -28,25 +28,17 @@ class LuauParser {
         'rawequal', 'unpack', 'table', 'string', 'math', 'coroutine', 'debug',
         'collectgarbage', 'dofile', 'gcinfo', 'getfenv', 'load', 'loadfile',
         'newproxy', 'setfenv',
-        // Roblox globals
+        // Roblox globals (ONLY globals that appear without dot/colon)
         'game', 'workspace', 'script', 'wait', 'spawn', 'delay', 'tick', 'time',
         '_G', '_VERSION', 'shared', 'plugin',
-        // Roblox classes
+        // Roblox classes (constructors)
         'Instance', 'Vector3', 'Vector2', 'CFrame', 'UDim', 'UDim2',
         'Color3', 'BrickColor', 'Enum', 'require', 'typeof', 'Ray', 'Axes',
         'Faces', 'Region3', 'Region3int16', 'PhysicalProperties', 'NumberRange',
         'NumberSequence', 'NumberSequenceKeypoint', 'ColorSequence', 'ColorSequenceKeypoint',
         'Rect', 'TweenInfo', 'Random', 'DockWidgetPluginGuiInfo', 'PathWaypoint',
         'OverlapParams', 'RaycastParams', 'RaycastResult', 'DateTime',
-        // Roblox services (common ones)
-        'Workspace', 'Players', 'Lighting', 'ReplicatedStorage', 'ReplicatedFirst',
-        'ServerScriptService', 'ServerStorage', 'StarterGui', 'StarterPack',
-        'StarterPlayer', 'Teams', 'SoundService', 'Chat', 'LocalizationService',
-        'TestService', 'InsertService', 'CollectionService', 'TweenService',
-        'UserInputService', 'ContextActionService', 'RunService', 'HttpService',
-        'MarketplaceService', 'TeleportService', 'DataStoreService', 'GroupService',
-        'BadgeService', 'PointsService', 'AdService', 'NotificationService',
-        // Roblox math functions  
+        // Roblox math/utility modules  
         'bit32', 'utf8', 'os', 'task',
         // Common methods/properties (should not be renamed when after . or :)
         'GetService', 'FindFirstChild', 'FindFirstChildOfClass', 'FindFirstChildWhichIsA',
