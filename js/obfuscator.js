@@ -103,7 +103,7 @@ class LuauObfuscator {
             if (nextToken && nextToken.value === '=' && prevToken && prevToken.value === ',') {
                 continue;
             }
-            if (nextToken && nextToken.value === '=' && i > 0 && tokens[i - 1].value === '{') {
+            if (nextToken && nextToken.value === '=' && prevToken && prevToken.value === '{') {
                 continue;
             }
             

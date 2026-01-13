@@ -26,8 +26,7 @@ class LuauParser {
         'tonumber', 'tostring', 'type', 'pairs', 'ipairs', 'next', 'select',
         'getfenv', 'setfenv', 'getmetatable', 'setmetatable', 'rawget', 'rawset',
         'rawequal', 'unpack', 'table', 'string', 'math', 'coroutine', 'debug',
-        'collectgarbage', 'dofile', 'gcinfo', 'getfenv', 'load', 'loadfile',
-        'newproxy', 'setfenv',
+        'collectgarbage', 'dofile', 'gcinfo', 'load', 'loadfile', 'newproxy',
         // Roblox globals (ONLY globals that appear without dot/colon)
         'game', 'workspace', 'script', 'wait', 'spawn', 'delay', 'tick', 'time',
         '_G', '_VERSION', 'shared', 'plugin',
@@ -39,25 +38,7 @@ class LuauParser {
         'Rect', 'TweenInfo', 'Random', 'DockWidgetPluginGuiInfo', 'PathWaypoint',
         'OverlapParams', 'RaycastParams', 'RaycastResult', 'DateTime',
         // Roblox math/utility modules  
-        'bit32', 'utf8', 'os', 'task',
-        // Common methods/properties (should not be renamed when after . or :)
-        'GetService', 'FindFirstChild', 'FindFirstChildOfClass', 'FindFirstChildWhichIsA',
-        'WaitForChild', 'IsA', 'Clone', 'Destroy', 'GetChildren', 'GetDescendants',
-        'Name', 'Parent', 'ClassName', 'Character', 'LocalPlayer', 'UserId',
-        'DisplayName', 'Humanoid', 'HumanoidRootPart', 'Head', 'Torso',
-        'LeftArm', 'RightArm', 'LeftLeg', 'RightLeg', 'Health', 'MaxHealth',
-        'WalkSpeed', 'JumpPower', 'Position', 'CFrame', 'Orientation', 'Size',
-        'Transparency', 'CanCollide', 'Anchored', 'Material', 'Color',
-        'BrickColor', 'Reflectance', 'Velocity', 'RotVelocity', 'Touched',
-        'Changed', 'ChildAdded', 'ChildRemoved', 'DescendantAdded', 'DescendantRemoving',
-        'GetPlayers', 'GetPlayerByUserId', 'GetPlayerFromCharacter',
-        'PlayerAdded', 'PlayerRemoving', 'CharacterAdded', 'CharacterRemoving',
-        'Kick', 'LoadCharacter', 'TeamColor', 'Team', 'Neutral',
-        'Connect', 'Wait', 'Fire', 'Invoke', 'InvokeServer', 'FireServer',
-        'InvokeClient', 'FireClient', 'OnServerEvent', 'OnClientEvent',
-        'Value', 'Changed', 'Text', 'TextLabel', 'TextButton', 'TextBox',
-        'Visible', 'BackgroundColor3', 'BorderColor3', 'TextColor3',
-        'Font', 'TextSize', 'TextWrapped', 'TextScaled'
+        'bit32', 'utf8', 'os', 'task'
     ]);
 
     isWhitespace(char) {
