@@ -1,1 +1,113 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lua/Luau Obfuscator</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 Lua/Luau Obfuscator</h1>
+            <p>Simple, working obfuscator for Roblox scripts</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <h2>Input Code</h2>
+                <textarea id="inputCode" placeholder="Paste your Lua/Luau code here...">local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+print("Hello, " .. player.Name)</textarea>
+            </div>
+            
+            <div class="controls">
+                <button id="obfuscateBtn" onclick="obfuscateCode()">🔒 Obfuscate</button>
+                <button id="copyBtn" onclick="copyOutput()">📋 Copy Output</button>
+                <div class="options">
+                    <label>
+                        <input type="checkbox" id="encryptStrings" checked>
+                        Encrypt Strings
+                    </label>
+                    <label>
+                        <input type="checkbox" id="renameVariables" checked>
+                        Rename Variables
+                    </label>
+                </div>
+            </div>
+            
+            <div class="output-section">
+                <h2>Obfuscated Code</h2>
+                <textarea id="outputCode" readonly placeholder="Obfuscated code will appear here..."></textarea>
+            </div>
+            
+            <div class="status" id="status"></div>
+        </div>
+    </div>
+    
+    <script src="js/parser.js"></script>
+    <script src="js/encryption.js"></script>
+    <script src="js/obfuscator.js"></script>
+    
+    <script>
+        function obfuscateCode() {
+            const inputCode = document.getElementById('inputCode').value;
+            const encryptStrings = document.getElementById('encryptStrings').checked;
+            const renameVariables = document.getElementById('renameVariables').checked;
+            const statusDiv = document.getElementById('status');
+            
+            if (!inputCode.trim()) {
+                statusDiv.textContent = '❌ Please enter some code to obfuscate';
+                statusDiv.className = 'status error';
+                return;
+            }
+            
+            try {
+                statusDiv.textContent = '⏳ Obfuscating...';
+                statusDiv.className = 'status info';
+                
+                const obfuscated = obfuscateLua(inputCode, {
+                    encryptStrings: encryptStrings,
+                    renameVariables: renameVariables
+                });
+                
+                document.getElementById('outputCode').value = obfuscated;
+                statusDiv.textContent = '✅ Code obfuscated successfully!';
+                statusDiv.className = 'status success';
+            } catch (error) {
+                statusDiv.textContent = '❌ Error: ' + error.message;
+                statusDiv.className = 'status error';
+                console.error('Obfuscation error:', error);
+            }
+        }
+        
+        function copyOutput() {
+            const outputCode = document.getElementById('outputCode');
+            const statusDiv = document.getElementById('status');
+            
+            // Use modern Clipboard API with fallback
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(outputCode.value)
+                    .then(() => {
+                        statusDiv.textContent = '✅ Copied to clipboard!';
+                        statusDiv.className = 'status success';
+                    })
+                    .catch(() => {
+                        // Fallback to older method
+                        outputCode.select();
+                        document.execCommand('copy');
+                        statusDiv.textContent = '✅ Copied to clipboard!';
+                        statusDiv.className = 'status success';
+                    });
+            } else {
+                // Fallback for older browsers
+                outputCode.select();
+                document.execCommand('copy');
+                statusDiv.textContent = '✅ Copied to clipboard!';
+                statusDiv.className = 'status success';
+            }
+        }
+    </script>
+</body>
+</html>
