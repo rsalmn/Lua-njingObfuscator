@@ -21,7 +21,8 @@ function generateValidName(length = 8) {
 function generateUniqueName(usedNames, protectedNames, length = 8) {
     let name;
     let attempts = 0;
-    const maxAttempts = 1000;
+    const maxAttempts = 100;
+    const maxLength = 32; // Maximum reasonable identifier length
     
     do {
         name = generateValidName(length);
@@ -31,6 +32,11 @@ function generateUniqueName(usedNames, protectedNames, length = 8) {
             // If we can't find a unique name, make it longer
             length++;
             attempts = 0;
+            
+            // Safety check: prevent infinite loop
+            if (length > maxLength) {
+                throw new Error('Unable to generate unique identifier - namespace exhausted');
+            }
         }
     } while (usedNames.has(name) || protectedNames.has(name));
     

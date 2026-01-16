@@ -12,8 +12,8 @@ const LUA_KEYWORDS = new Set([
 const ROBLOX_GLOBALS = new Set([
     'game', 'workspace', 'script', 'Instance', 'Vector3', 'CFrame', 'Color3',
     'UDim2', 'Enum', 'tick', 'wait', 'spawn', 'delay', 'shared', 'plugin',
-    'PluginManager', 'LoadLibrary', '_G', '_VERSION', 'Workspace', 'Game',
-    'Script', 'owner', 'NLS', 'NewLocalScript', 'NS', 'NewScript'
+    'PluginManager', 'LoadLibrary', '_G', '_VERSION', 'owner', 'NLS', 
+    'NewLocalScript', 'NS', 'NewScript'
 ]);
 
 // Built-in Lua functions that should never be renamed

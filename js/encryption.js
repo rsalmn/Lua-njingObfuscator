@@ -22,14 +22,14 @@ function encryptString(str, key) {
     return encrypted;
 }
 
-// Convert string to Lua escape sequences
+// Convert string to Lua escape sequences using decimal notation for compatibility
 function toLuaEscapeSequence(str) {
     let result = '';
     for (let i = 0; i < str.length; i++) {
         const code = str.charCodeAt(i);
         if (code < 32 || code > 126) {
-            // Use \x hex notation for non-printable characters
-            result += '\\x' + code.toString(16).padStart(2, '0');
+            // Use \ddd decimal notation for non-printable characters (more compatible)
+            result += '\\' + code.toString(10).padStart(3, '0');
         } else if (str[i] === '\\') {
             result += '\\\\';
         } else if (str[i] === '"') {
