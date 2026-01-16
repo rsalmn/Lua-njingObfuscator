@@ -54,13 +54,17 @@ function extractStringContent(quotedString) {
     const quote = quotedString[0];
     let content = quotedString.slice(1, -1);
     
-    // Process escape sequences
+    // Process escape sequences in the correct order
+    // First, handle double backslashes by converting to a placeholder
+    content = content.replace(/\\\\/g, '\x00BACKSLASH\x00');
+    // Then handle other escape sequences
     content = content.replace(/\\n/g, '\n');
     content = content.replace(/\\t/g, '\t');
     content = content.replace(/\\r/g, '\r');
-    content = content.replace(/\\\\/g, '\\');
     content = content.replace(/\\"/g, '"');
     content = content.replace(/\\'/g, "'");
+    // Finally, restore backslashes
+    content = content.replace(/\x00BACKSLASH\x00/g, '\\');
     
     return content;
 }

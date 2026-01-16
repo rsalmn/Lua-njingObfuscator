@@ -5,7 +5,7 @@
 const LUA_KEYWORDS = new Set([
     'and', 'break', 'do', 'else', 'elseif', 'end', 'false', 'for', 'function',
     'if', 'in', 'local', 'nil', 'not', 'or', 'repeat', 'return', 'then',
-    'true', 'until', 'while', 'continue'
+    'true', 'until', 'while'
 ]);
 
 // Roblox globals that should never be renamed

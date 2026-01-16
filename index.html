@@ -84,12 +84,29 @@ print("Hello, " .. player.Name)</textarea>
         
         function copyOutput() {
             const outputCode = document.getElementById('outputCode');
-            outputCode.select();
-            document.execCommand('copy');
-            
             const statusDiv = document.getElementById('status');
-            statusDiv.textContent = '✅ Copied to clipboard!';
-            statusDiv.className = 'status success';
+            
+            // Use modern Clipboard API with fallback
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(outputCode.value)
+                    .then(() => {
+                        statusDiv.textContent = '✅ Copied to clipboard!';
+                        statusDiv.className = 'status success';
+                    })
+                    .catch(() => {
+                        // Fallback to older method
+                        outputCode.select();
+                        document.execCommand('copy');
+                        statusDiv.textContent = '✅ Copied to clipboard!';
+                        statusDiv.className = 'status success';
+                    });
+            } else {
+                // Fallback for older browsers
+                outputCode.select();
+                document.execCommand('copy');
+                statusDiv.textContent = '✅ Copied to clipboard!';
+                statusDiv.className = 'status success';
+            }
         }
     </script>
 </body>
